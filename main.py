@@ -11,8 +11,12 @@ import torch.optim as optim
 import numpy as np
 
 def main(csv_file_path):
-    df = pd.read_csv(csv_file_path, nrows = 10000)
+    #df = pd.read_csv(csv_file_path, nrows=1000)
+    print('reading csv file...')
+    df = pd.read_csv(csv_file_path)
+    print('finish read the file')
     df.dropna(axis = 0, inplace = True)
+    print('successfully remove Nan value in dataframe')
     train, val = train_test_split(df)
     print('train: {} \t val:{}'.format(train.shape, val.shape))
     train_dataset = CryptoDataset(train, params['SEQ_LENGTH'], params['FEATURES'], params['TARGET'])

@@ -22,11 +22,13 @@ def load_checkpoint(path, model, optimizer):
     return model, optimizer, checkpoint["epoch"], min_val_loss
 
 
-def training(model, epochs, train_dataloader, validation_dataloader, BATCH_SIZE, optimizer, criterion, device, validate_every=5):
-
+def training(model, epochs, train_dataloader, validation_dataloader, BATCH_SIZE, optimizer, criterion, device, validate_every=5, pretrained=True):
     train_losses = []
     validation_losses = []
     min_validation_loss = np.Inf
+    if pretrained:
+        model, optimizer, _, min_validation_loss = load_checkpoint('./model_state.pt', model, optimizer)
+
 
     # Set to train mode
     model.train()

@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 class CryptoDataset(Dataset):
     """Onchain dataset."""
@@ -17,7 +18,7 @@ class CryptoDataset(Dataset):
 
     def create_xy_pairs(self):
         pairs = []
-        for idx in range(self.data_length - self.seq_length):
+        for idx in tqdm(range(self.data_length - self.seq_length)):
             x = self.csv_file[idx:idx + self.seq_length][self.features].values
             y = self.csv_file[idx + self.seq_length:idx + self.seq_length + 1][self.target].values
             pairs.append((x, y))
