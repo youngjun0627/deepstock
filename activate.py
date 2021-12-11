@@ -1,4 +1,6 @@
 import torch
+import numpy as np
+from tqdm import tqdm
 
 def save_checkpoint(epoch, min_val_loss, model_state, opt_state):
     print(f"New minimum reached at epoch #{epoch + 1}, saving model state...")
@@ -20,9 +22,9 @@ def load_checkpoint(path, model, optimizer):
     return model, optimizer, checkpoint["epoch"], min_val_loss
 
 
-def training(model, epochs, validate_every=5):
+def training(model, epochs, train_dataloader, validation_dataloader, BATCH_SIZE, optimizer, criterion, device, validate_every=5):
 
-    training_losses = []
+    train_losses = []
     validation_losses = []
     min_validation_loss = np.Inf
 
@@ -34,10 +36,10 @@ def training(model, epochs, validate_every=5):
         # Initialize hidden and cell states with dimension:
         # (num_layers * num_directions, batch, hidden_size)
         states = model.init_hidden_states(BATCH_SIZE)
-        running_training_loss = 0.0
+        running_train_loss = 0.0
 
         # Begin training
-        for idx, (x_batch, y_batch) in enumerate(training_dl):
+        for idx, (x_batch, y_batch) in enumerate(train_dataloader):
             # Convert to Tensors
             x_batch = x_batch.float().to(device)
             y_batch = y_batch.float().to(device)
@@ -53,13 +55,13 @@ def training(model, epochs, validate_every=5):
             # Calculate loss
             loss = criterion(output[:, -1, :], y_batch)
             loss.backward()
-            running_training_loss += loss.item()
+            running_train_loss += loss.item()
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
             optimizer.step()
             
         # Average loss across timesteps
-        training_losses.append(running_training_loss / len(training_dl))
+        train_losses.append(running_train_loss / len(train_dataloader))
             
         if epoch % validate_every == 0:
 
@@ -69,7 +71,7 @@ def training(model, epochs, validate_every=5):
             validation_states = model.init_hidden_states(BATCH_SIZE)
             running_validation_loss = 0.0
 
-            for idx, (x_batch, y_batch) in enumerate(validation_dl):
+            for idx, (x_batch, y_batch) in enumerate(validation_dataloader):
 
                 # Convert to Tensors
                 x_batch = x_batch.float().to(device)
@@ -80,14 +82,14 @@ def training(model, epochs, validate_every=5):
                 validation_loss = criterion(output[:, -1, :], y_batch)
                 running_validation_loss += validation_loss.item()
             
-        validation_losses.append(running_validation_loss / len(validation_dl))
+        validation_losses.append(running_validation_loss / len(validation_dataloader))
         # Reset to training mode
         model.train()
 
-        is_best = running_validation_loss / len(validation_dl) < min_validation_loss
+        is_best = running_validation_loss / len(validation_dataloader) < min_validation_loss
 
         if is_best:
-          min_validation_loss = running_validation_loss / len(validation_dl)
+          min_validation_loss = running_validation_loss / len(validation_dataloader)
           save_checkpoint(epoch + 1, min_validation_loss, model.state_dict(), optimizer.state_dict())
             
         '''
