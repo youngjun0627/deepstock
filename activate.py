@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 
-def save_checkpoint(epoch, min_val_loss, model_state, opt_state):
+def save_checkpoint(epoch, min_val_loss, model_state, opt_state, filename):
     print(f"New minimum reached at epoch #{epoch + 1}, saving model state...")
     checkpoint = {
       'epoch': epoch + 1,
@@ -10,7 +10,7 @@ def save_checkpoint(epoch, min_val_loss, model_state, opt_state):
       'model_state': model_state,
       'opt_state': opt_state,
     }
-    torch.save(checkpoint, "./model_state.pt")
+    torch.save(checkpoint, "./{}.pt".format(filename))
 
 
 def load_checkpoint(path, model, optimizer):
@@ -22,7 +22,7 @@ def load_checkpoint(path, model, optimizer):
     return model, optimizer, checkpoint["epoch"], min_val_loss
 
 
-def training(model, epochs, train_dataloader, validation_dataloader, BATCH_SIZE, optimizer, criterion, device, validate_every=5, pretrained=True):
+def training(save_name, model, epochs, train_dataloader, validation_dataloader, BATCH_SIZE, optimizer, criterion, device, validate_every=5, pretrained=True):
     train_losses = []
     validation_losses = []
     min_validation_loss = np.Inf
@@ -92,7 +92,7 @@ def training(model, epochs, train_dataloader, validation_dataloader, BATCH_SIZE,
 
         if is_best:
           min_validation_loss = running_validation_loss / len(validation_dataloader)
-          save_checkpoint(epoch + 1, min_validation_loss, model.state_dict(), optimizer.state_dict())
+          save_checkpoint(epoch + 1, min_validation_loss, model.state_dict(), optimizer.state_dict(), save_name)
             
         '''
         # Visualize loss

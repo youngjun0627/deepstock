@@ -9,6 +9,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import argparse
+import asyncio
+
+parser = argparse.ArgumentParser(description='insert saved model name.')
+parser.add_argument('--save_name', type=str)
+
+args = parser.parse_args()
+
 
 def main(csv_file_path):
     #df = pd.read_csv(csv_file_path, nrows=1000)
@@ -35,7 +43,7 @@ def main(csv_file_path):
     criterion = nn.MSELoss()
     optimizer = optim.AdamW(model.linear.parameters(), lr=params['LEARNING_RATE'], weight_decay=0.01)
 
-    training(model, 100, train_dataloader, val_dataloader, params['BATCH_SIZE'], optimizer, criterion, device)
+    training(args.save_name, model, 100, train_dataloader, val_dataloader, params['BATCH_SIZE'], optimizer, criterion, device)
 if __name__=='__main__':
     main('/mnt/data/guest0/train.csv')
 
