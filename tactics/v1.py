@@ -3,7 +3,7 @@ import time
 
 import pyupbit
 
-from utils import read_key
+from utils import read_key, get_high_volume_tickers
 
 
 def get_target_price(ticker, k):
@@ -24,8 +24,8 @@ def get_ma15(ticker):
     return ma15
 
 
-def get_balance(ticker):
-    balances = pyupbit.get_balances()
+def get_balance(upbit, ticker):
+    balances = upbit.get_balances()
     for b in balances:
         if b["currency"] == ticker:
             if b["balance"] is not None:
@@ -39,35 +39,42 @@ def get_current_price(ticker):
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 
-# 로그인
-def func_version1(path="keys.json"):
+def func_version1(EXCEPT_COINS, path="keys.json"):
+    
+    markets = pyupbit.get_tickers(fiat='KRW')
+    markets = get_high_volume_tickers(markets)
+
     access = read_key(path)
     secret = read_key(path, key="SECRET_KEY")
     upbit = pyupbit.Upbit(access, secret)
-    print("start")
-
+   
     while True:
-        try:
-            now = datetime.datetime.now()
-            start_time = get_start_time("KRW-BTC")
-            end_time = start_time + datetime.timedelta(days=1)
+        for market, _ in markets:
+            if market in EXCEPT_COINS:
+                continue
+            try:
+                now = datetime.datetime.now()
+                start_time = get_start_time(market)
+                end_time = start_time + datetime.timedelta(days=1)
 
-            if start_time < now < end_time - datetime.timedelta(seconds=10):
-                target_price = get_target_price("KRW-BTC", 0.5)
-                ma15 = get_ma15("KRW-BTC")
-                current_price = get_current_price("KRW-BTC")
-                if target_price < current_price and ma15 < current_price:
-                    krw = get_balance("KRW")
-                    print(krw)
-                    if krw > 5000:
-                        print("산다")
-                        # upbit.buy_market_order("KRW-BTC", krw*0.9995)
-            else:
-                btc = get_balance("BTC")
-                if btc > 0.00008:
-                    print("판다")
-                    upbit.sell_market_order("KRW-BTC", btc * 0.9995)
-            time.sleep(5)
-        except Exception as e:
-            print(e)
-            time.sleep(5)
+                if start_time < now < end_time - datetime.timedelta(seconds=10):
+                    target_price = get_target_price(market, 0.5)
+                    ma15 = get_ma15(market)
+                    current_price = get_current_price(market)
+                    if target_price < current_price and ma15 < current_price:
+                        krw = get_balance('KRW')
+                        if krw > 5000:
+                            upbit.buy_market_order(market, krw*0.9995)
+                            print(f'buy: {market} -> {krw*0.9995} won')
+                else:
+                    btc = get_balance(market.split('-')[1])
+                    if btc > 0.00008:
+                        upbit.sell_market_order(market, btc*0.9995)
+                        print(f'sell: {market} -> {krw*0.9995} won')
+                    markets = pyupbit.get_tickers(fiat='KRW')
+                    markets = get_high_volume_tickers(coins)
+                time.sleep(1)
+            except Exception as e:
+                print(e)
+                time.sleep(1)
+
