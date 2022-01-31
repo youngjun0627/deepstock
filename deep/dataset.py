@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+
 class CryptoDataset(Dataset):
     """Onchain dataset."""
 
@@ -15,16 +16,14 @@ class CryptoDataset(Dataset):
         self.data_length = len(csv_file)
         self.indexes = self.create_start_end_pairs()
 
-
     def create_start_end_pairs(self):
         pairs = []
-        print('loading dataset...')
+        print("loading dataset...")
         for idx in tqdm(range(self.data_length - self.seq_length)):
             x = [idx, idx + self.seq_length]
             y = [idx + self.seq_length, idx + self.seq_length + 1]
             pairs.append((x, y))
         return pairs
-
 
     def create_features_label_pairs(self, index):
         x, y = self.indexes[index]
@@ -39,4 +38,3 @@ class CryptoDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.create_features_label_pairs(idx)
-        
