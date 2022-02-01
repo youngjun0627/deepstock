@@ -82,7 +82,8 @@ def func_version1(EXCEPT_COINS, slackbot, path="keys.json"):
                         slackbot.post_message(f"sell: {market} -> {crypto} won")
                     markets = pyupbit.get_tickers(fiat="KRW")
                     markets = get_high_volume_tickers(markets)
-                time.sleep(1)
+                time.sleep(1.5)
             except Exception as e:
                 slackbot.post_message(e)
-                time.sleep(1)
+                print(e)
+                time.sleep(1.5)

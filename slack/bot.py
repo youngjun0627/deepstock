@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+from pytz import timezone
 
 from utils import read_key
 
@@ -25,7 +26,7 @@ class SlackBot(object):
     def post_message(self, msg):
         url = "https://slack.com/api/chat.postMessage"
 
-        text = f"{datetime.now().strftime('[%m/%d %H:%M:%S]')} {msg}"
+        text = f"{datetime.now(timezone('Asia/Seoul')).strftime('[%m/%d %H:%M:%S]')} {msg}"
         response = requests.post(
             url, headers={"Authorization": "Bearer " + self.token}, data={"channel": self.channel, "text": text}
         )
