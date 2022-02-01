@@ -3,7 +3,8 @@ import time
 
 import pyupbit
 
-from utils import read_key, get_high_volume_tickers
+from utils import get_high_volume_tickers
+from utils import read_key
 
 
 def get_target_price(ticker, k):
@@ -40,14 +41,14 @@ def get_current_price(ticker):
 
 
 def func_version1(EXCEPT_COINS, path="keys.json"):
-    
-    markets = pyupbit.get_tickers(fiat='KRW')
+
+    markets = pyupbit.get_tickers(fiat="KRW")
     markets = get_high_volume_tickers(markets)
 
     access = read_key(path)
     secret = read_key(path, key="SECRET_KEY")
     upbit = pyupbit.Upbit(access, secret)
-   
+
     while True:
         for market, _ in markets:
             if market in EXCEPT_COINS:
@@ -62,19 +63,18 @@ def func_version1(EXCEPT_COINS, path="keys.json"):
                     ma15 = get_ma15(market)
                     current_price = get_current_price(market)
                     if target_price < current_price and ma15 < current_price:
-                        krw = get_balance('KRW')
+                        krw = get_balance(upbit, "KRW")
                         if krw > 5000:
-                            upbit.buy_market_order(market, krw*0.9995)
-                            print(f'buy: {market} -> {krw*0.9995} won')
+                            upbit.buy_market_order(market, krw * 0.9995)
+                            print(f"buy: {market} -> {krw*0.9995} won")
                 else:
-                    btc = get_balance(market.split('-')[1])
-                    if btc > 0.00008:
-                        upbit.sell_market_order(market, btc*0.9995)
-                        print(f'sell: {market} -> {krw*0.9995} won')
-                    markets = pyupbit.get_tickers(fiat='KRW')
-                    markets = get_high_volume_tickers(coins)
+                    crypto = get_balance(upbit, market.split("-")[1])
+                    if crypto > 0.00008:
+                        upbit.sell_market_order(market, crypto * 0.9995)
+                        print(f"sell: {market} -> {crypto*0.9995} won")
+                    markets = pyupbit.get_tickers(fiat="KRW")
+                    markets = get_high_volume_tickers(markets)
                 time.sleep(1)
             except Exception as e:
                 print(e)
                 time.sleep(1)
-
