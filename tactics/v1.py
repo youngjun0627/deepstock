@@ -40,7 +40,7 @@ def get_current_price(ticker):
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 
-def func_version1(EXCEPT_COINS, path="keys.json"):
+def func_version1(EXCEPT_COINS, slackbot, path="keys.json"):
 
     buy_dict = {}
     markets = pyupbit.get_tickers(fiat="KRW")
@@ -67,22 +67,22 @@ def func_version1(EXCEPT_COINS, path="keys.json"):
                         krw = get_balance(upbit, "KRW")
                         if krw > 5000:
                             upbit.buy_market_order(market, krw * 0.9995)
-                            print(f"buy: {market} -> {krw * 0.9995} won")
+                            slackbot.post_message(f"buy: {market} -> {krw * 0.9995} won")
                             buy_dict[market] = krw * 0.9995
                     if market in buy_dict:
                         if current_price < (buy_dict[market] * 0.95):
                             upbit.sell_market_order(market, current_price)
-                            print(f"sell(d): {market} -> {current_price} won")
+                            slackbot.post_message(f"sell(d): {market} -> {current_price} won")
 
                 else:
                     crypto = get_balance(upbit, market.split("-")[1])
                     crypto = get_current_price(market) * crypto
                     if crypto > 5000:
                         upbit.sell_market_order(market, crypto)
-                        print(f"sell: {market} -> {crypto} won")
+                        slackbot.post_message(f"sell: {market} -> {crypto} won")
                     markets = pyupbit.get_tickers(fiat="KRW")
                     markets = get_high_volume_tickers(markets)
                 time.sleep(1)
             except Exception as e:
-                print(e)
+                slackbot.post_message(e)
                 time.sleep(1)

@@ -1,12 +1,11 @@
+from slack.bot import SlackBot
 from tactics.v1 import func_version1
-
-path = "keys.json"
 
 
 def main():
     EXCEPT_COINS = ["KRW-FLOW", "KRW-ETH", "KRW-ADA", "KRW-MANA"]
-
-    func_version1(EXCEPT_COINS)
+    slackbot = SlackBot()
+    func_version1(EXCEPT_COINS, slackbot)
 
 
 if __name__ == "__main__":
