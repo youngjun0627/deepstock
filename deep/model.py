@@ -1,33 +1,70 @@
+import lightgbm as lgb
 import numpy as np
-import torch
-import torch.nn as nn
-
-# Transfer to accelerator
-use_cuda = torch.cuda.is_available()
-device = torch.device("cuda:0" if use_cuda else "cpu")
-
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
-np.random.seed(0)
+import pyupbit
+from fbprophet import Prophet
 
 
-class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, output_size, dropout_prob, directions=1):
-        super(LSTM, self).__init__()
+def predict_price_using_prophet(ticker):
+    """Prophet으로 당일 종가 가격 예측"""
+    predicted_close_price = 0
+    df = pyupbit.get_ohlcv(ticker, interval="minute60")
+    df = df.reset_index()
+    df["ds"] = df["index"]
+    df["y"] = np.log(df[1:].reset_index()["close"] / df[:-1].reset_index()["close"])
+    df = df[1:-1]
+    data = df[["ds", "y"]]
+    model = Prophet()
+    model.fit(data)
+    future = model.make_future_dataframe(periods=24, freq="H")
+    forecast = model.predict(future)
+    closeDf = forecast[forecast["ds"] == forecast.iloc[-1]["ds"].replace(hour=9)]
+    if len(closeDf) == 0:
+        closeDf = forecast[forecast["ds"] == data.iloc[-1]["ds"].replace(hour=9)]
+    closeValue = closeDf["yhat"].values[0]
+    predicted_close_price = closeValue
+    return predicted_close_price
 
-        self.num_layers = num_layers
-        self.hidden_size = hidden_size
-        self.directions = directions
 
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=dropout_prob)
-        self.dropout = nn.Dropout(dropout_prob)
-        self.linear = nn.Linear(hidden_size, output_size)
+def predict_price_using_lgbm(ticker):
+    df = pyupbit.get_ohlcv(ticker, interval="minute60")
+    df["VWAP"] = df["value"] / df["volume"]
 
-    def init_hidden_states(self, batch_size):
-        state_dim = (self.num_layers * self.directions, batch_size, self.hidden_size)
-        return (torch.zeros(state_dim).to(device), torch.zeros(state_dim).to(device))
+    """
+    x = feature_adjust(df)
+    y = np.log(x[1:].reset_index()['close'] / x[:-1].reset_index()['close'])
 
-    def forward(self, x, states):
-        x, (h, c) = self.lstm(x, states)
-        out = self.linear(x)
-        return out, (h, c)
+    x = x[1:]
+    """
+    x = refeature(df)
+    train_x = x[:-1]
+    train_y = np.log(train_x[1:].reset_index()["close"] / train_x[:-1].reset_index()["close"])
+    train_x = train_x[1:]
+
+    train_x, test_x = train_x[:-2], train_x[-2:]
+    train_y, test_y = train_y[:-2], train_y[-2:]
+    model = get_model(train_x, train_y)
+
+    print(model.predict(test_x), test_y)
+
+
+def refeature(df):
+    columns = ["close", "high", "low", "open", "VWAP", "volume"]
+
+    x = df[columns].copy()
+
+    return x
+
+
+def get_model(x, y):
+    lgb_params = {
+        "objective": "regression",
+        "n_estimators": 500,
+        "num_leaves": 300,
+        "learning_rate": 0.09,
+        "random_seed": 2022,
+    }
+
+    model = lgb.LGBMRegressor(**lgb_params)
+    model.fit(x, y)
+
+    return model
