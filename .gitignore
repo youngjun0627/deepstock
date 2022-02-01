@@ -6,7 +6,7 @@ __pycache__
 devuchan.pem
 keys.json
 enter.sh
-
+nohup.out
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/python

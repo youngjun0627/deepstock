@@ -70,8 +70,9 @@ def func_version1(EXCEPT_COINS, slackbot, path="keys.json"):
                             slackbot.post_message(f"buy: {market} -> {krw * 0.9995} won")
                             buy_dict[market] = krw * 0.9995
                     if market in buy_dict:
-                        if current_price < (buy_dict[market] * 0.95):
-                            upbit.sell_market_order(market, current_price)
+                        crypto = get_balance(upbit, market.split("-")[1]) * current_price
+                        if crypto < (buy_dict[market] * 0.95):
+                            upbit.sell_market_order(market, crypto)
                             slackbot.post_message(f"sell(d): {market} -> {current_price} won")
 
                 else:
