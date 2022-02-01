@@ -69,9 +69,10 @@ def func_version1(EXCEPT_COINS, path="keys.json"):
                             print(f"buy: {market} -> {krw*0.9995} won")
                 else:
                     crypto = get_balance(upbit, market.split("-")[1])
-                    if crypto > 0.00008:
-                        upbit.sell_market_order(market, crypto * 0.9995)
-                        print(f"sell: {market} -> {crypto*0.9995} won")
+                    crypto = get_current_price(market) * crypto
+                    if crypto > 5000:
+                        upbit.sell_market_order(market, crypto)
+                        print(f"sell: {market} -> {crypto} won")
                     markets = pyupbit.get_tickers(fiat="KRW")
                     markets = get_high_volume_tickers(markets)
                 time.sleep(1)
