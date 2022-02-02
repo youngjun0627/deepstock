@@ -2,6 +2,7 @@ import datetime
 import time
 
 import pyupbit
+from pytz import timezone
 
 from utils import get_high_volume_tickers
 from utils import read_key
@@ -44,47 +45,59 @@ def func_version1(EXCEPT_COINS, slackbot, path="keys.json"):
 
     buy_dict = {}
     markets = pyupbit.get_tickers(fiat="KRW")
-    markets = get_high_volume_tickers(markets)
+    markets = get_high_volume_tickers(markets, count=20)
 
     access = read_key(path)
     secret = read_key(path, key="SECRET_KEY")
     upbit = pyupbit.Upbit(access, secret)
-
+    for market, _ in markets:
+        if market in EXCEPT_COINS:
+            continue
+        balance = get_balance(upbit, market.split("-")[1])
+        if balance != 0:
+            avg_buy_price = upbit.get_avg_buy_price(market.split("-")[1])
+            buy_dict[market] = avg_buy_price
+    markets_count = len(markets)
     while True:
         for market, _ in markets:
             if market in EXCEPT_COINS:
                 continue
             try:
-                now = datetime.datetime.now()
+                now = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
                 start_time = get_start_time(market)
                 end_time = start_time + datetime.timedelta(days=1)
-
-                if start_time < now < end_time - datetime.timedelta(seconds=10):
+                if start_time < now < end_time - datetime.timedelta(seconds=markets_count + 1):
+                    if market in buy_dict:
+                        continue
                     target_price = get_target_price(market, 0.5)
                     ma15 = get_ma15(market)
                     current_price = get_current_price(market)
                     if target_price < current_price and ma15 < current_price:
-                        krw = get_balance(upbit, "KRW")
+                        krw = min(10000, get_balance(upbit, "KRW"))
                         if krw > 5000:
-                            upbit.buy_market_order(market, krw * 0.9995)
-                            slackbot.post_message(f"buy: {market} -> {krw * 0.9995} won")
-                            buy_dict[market] = krw * 0.9995
+                            result = upbit.buy_market_order(market, krw * 0.9995)
+                            if result is not None:
+                                buy_dict[market] = krw * 0.9995
+                                slackbot.post_message(f"buy: {market} -> {krw * 0.9995} won")
                     if market in buy_dict:
-                        crypto = get_balance(upbit, market.split("-")[1]) * current_price
-                        if crypto < (buy_dict[market] * 0.95):
-                            upbit.sell_market_order(market, crypto)
-                            slackbot.post_message(f"sell(d): {market} -> {current_price} won")
+                        crypto = get_balance(upbit, market.split("-")[1])
+                        if (crypto * current_price) < (buy_dict[market] * 0.95):
+                            result = upbit.sell_market_order(market, crypto)
+                            if result is not None:
+                                buy_dict.pop(market)
+                                slackbot.post_message(f"sell(d): {market} -> {crypto} won")
 
                 else:
                     crypto = get_balance(upbit, market.split("-")[1])
-                    crypto = get_current_price(market) * crypto
-                    if crypto > 5000:
-                        upbit.sell_market_order(market, crypto)
-                        slackbot.post_message(f"sell: {market} -> {crypto} won")
+                    if (crypto * get_current_price(market)) > 5000:
+                        result = upbit.sell_market_order(market, crypto)
+                        if result is not None:
+                            buy_dict.pop(market)
+                            slackbot.post_message(f"sell: {market} -> {crypto} won")
                     markets = pyupbit.get_tickers(fiat="KRW")
                     markets = get_high_volume_tickers(markets)
-                time.sleep(1.5)
+                time.sleep(1)
             except Exception as e:
                 slackbot.post_message(e)
                 print(e)
-                time.sleep(1.5)
+                time.sleep(1)
