@@ -1,7 +1,9 @@
-in
-- push:
-    branches:
-      - main
+name: build stock
+
+on:
+  - push:
+      branches:
+        - main
 
 - jobs:
   - deploy:
