@@ -11,12 +11,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Run scripts in server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.IP }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SPEM }}
-          script: |
-            cd deepstock
-            ls
+      - name: Deploy in EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.SPEM  }}
+          HOSTNAME: ${{ secrets.IP  }}
+          USER_NAME: ${{ secrets.USERNAME  }}
+
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+          
+            #Now we have got the access of EC2 and we will start the deploy .
+            cd /home/ubuntu/deepstock &&
+            git checkout master &&
+            git fetch --all &&
+            git reset --hard origin/master &&
+            git pull origin master
