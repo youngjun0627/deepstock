@@ -1,9 +1,7 @@
 name: build stock
 
 on:
-  - push:
-      branches:
-        - main
+  - push
 
 - jobs:
   - runs-on: ubuntu-latest
