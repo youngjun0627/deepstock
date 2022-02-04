@@ -1,11 +1,10 @@
 name: build stock
 
-on:
-  - push
+on: push
 
 - jobs:
-  - runs-on: ubuntu-latest
   - deploy:
+      - runs-on: ubuntu-latest
       - steps:
         - name: Deploy
               uses: appleboy/ssh-action@master
@@ -17,4 +16,3 @@ on:
                 script: |
                   whoami
                   git pull origin main
-                  ls
