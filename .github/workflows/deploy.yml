@@ -11,13 +11,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Run scripts in server
+      - name: executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
-          key: ${{ secrets.SPEM }}
-          host: ${{ secrets.IP }}
+          host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-
-          script: |
-            ls
+          script: whoami
