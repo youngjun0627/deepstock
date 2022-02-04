@@ -17,6 +17,7 @@ jobs:
           key: ${{ secrets.SPEM }}
           host: ${{ secrets.IP }}
           username: ${{ secrets.USERNAME }}
-          args: "-tt -vvv"
+          port: ${{ secrets.PORT }}
+
           script: |
             ls
