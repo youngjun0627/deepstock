@@ -1,0 +1,19 @@
+in
+- push:
+    branches:
+      - main
+
+- jobs:
+  - deploy:
+      - steps:
+        - name: Deploy
+              uses: appleboy/ssh-action@master
+              with:
+                host: ${{ secrets.IP }}
+                username: ${{ secrets.USERNAME }}
+                key: ${{ secrets.SPEM }}
+                port: ${{ secrets.PORT }}
+                script: |
+                  whoami
+                  git pull origin main
+                  ls
