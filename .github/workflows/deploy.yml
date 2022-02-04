@@ -18,7 +18,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SPEM }}
           script: |
-            cd server
-            git reset --hard
-            git fetch
-            git pull
+            cd deepstock
+            ls
