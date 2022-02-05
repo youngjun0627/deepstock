@@ -21,11 +21,12 @@ jobs:
           port: ${{ secrets.PORT }}
           debug: true
           timeout: 30s
+          command_timeout: 30s
           script: | 
             cd deepstock
             ls -a
             git pull
             sh kill.sh
-            
+            { nohup pipenv run python3 run.py 2> /dev/null & }
             echo "start"
             exit
