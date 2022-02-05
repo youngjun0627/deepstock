@@ -25,3 +25,4 @@ jobs:
             git pull
             sh kill.sh
             nohup python3 run.py &
+            echo "start"
