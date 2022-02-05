@@ -12,25 +12,10 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@master
 
-      - name: Install SSH Key to server
-        uses: shimataro/ssh-key-action@v2
+      - name: Run SSH command
+        uses: garygrossgarten/github-action-ssh@v0.5.0
         with:
-          key: ${{ secrets.KEY }}
-          name: id_rsa
-          known_hosts: 'replaced-by-keyscan-below'
-          config: |
-            host ${{ secrets.SSH_HOST }}
-              IdentityFile ~/.ssh/id_rsa
-              IdentitiesOnly yes
-              ForwardAgent yes
-      - name: Add Known Hosts
-        run: ssh-keyscan -t rsa ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Add SSH Key
-        run: |
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_rsa
-
-      - name: Run
-        run: |
-          ls
+          command: ls
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
+          privateKey: ${{ secrets.KEY}}
