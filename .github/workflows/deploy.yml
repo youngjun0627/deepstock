@@ -29,3 +29,4 @@ jobs:
             nohup python3 run.py &
             echo "start"
             exit
+            exit
