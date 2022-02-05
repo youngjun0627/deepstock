@@ -26,4 +26,5 @@ jobs:
             git pull
             sh kill.sh
             pipenv shell
+            python --version
             nohup python run.py &
