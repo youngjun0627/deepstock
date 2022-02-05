@@ -22,7 +22,7 @@ jobs:
           debug: true
           script: | 
             ls -a
-            git clone https://github.com/youngjun0627/deepstock.git
             cd deepstock
-            PROCESS={ps -ef | grep python}
+            git pull
+            PROCESS="ps -ef | grep python"
             echo PROCESS
