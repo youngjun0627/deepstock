@@ -27,7 +27,7 @@ jobs:
             ls -a
             git pull
             sh kill.sh
-            nohup pipenv run python3 run.py > nohup.out 2> nohup.err < /dev/null &
+            nohup pipenv run python3 main.py > nohup.out 2> nohup.err < /dev/null &
             
             echo "start"
             exit

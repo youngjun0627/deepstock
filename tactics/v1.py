@@ -4,105 +4,97 @@ import time
 import pyupbit
 from pytz import timezone
 
-from utils import get_high_volume_tickers
-from utils import get_kvalue
-from utils import read_key
+from .helpers import get_balance
+from .helpers import get_current_price
+from .helpers import get_having_tickers
+from .helpers import get_high_volume_tickers
+from .helpers import get_kvalue
+from .helpers import get_ma15
+from .helpers import get_target_price
 
 
-def get_target_price(ticker, k):
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
-    target_price = df.iloc[0]["close"] + (df.iloc[0]["high"] - df.iloc[0]["low"]) * k
-    return target_price
+class Executor:
+    def __init__(self, upbit, slackbot, except_tickers):
+        self.except_tickers = except_tickers
+        self.slackbot = slackbot
+        self.upbit = upbit
+        self.start_time = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
+        self.cycle_time = 60 * 60
+        self.buy_tickers = {}
+        self.under_percent = 0.05
+        self.over_percent = 0.05
+        self.max_budget = 7000
+        self.count_tickers = 3
 
+    def select_tickers(self):
+        tickers = pyupbit.get_tickers(fiat="KRW")
+        tickers = get_high_volume_tickers(tickers, count=self.count_tickers)
+        return tickers
 
-def get_start_time(ticker):
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
-    start_time = df.index[0]
-    return start_time
+    def init_buy_tickers(self, tickers):
+        self.buy_tickers = get_having_tickers(self.upbit, tickers, self.except_tickers)
 
+    def _is_sell(self, current_price, ticker):
+        buy_price = self.buy_tickers[ticker]
+        if current_price < (buy_price * (1 - self.under_percent)) or current_price > (
+            buy_price * (1 + self.over_percent)
+        ):
+            return True
+        return False
 
-def get_ma15(ticker):
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=15)
-    ma15 = df["close"].rolling(15).mean().iloc[-1]
-    return ma15
+    def _is_buy(self, current_price, target_price, ma15):
+        if target_price < current_price and ma15 < current_price:
+            return True
+        return False
 
-
-def get_balance(upbit, ticker):
-    balances = upbit.get_balances()
-    for b in balances:
-        if b["currency"] == ticker:
-            if b["balance"] is not None:
-                return float(b["balance"])
+    def _process_in_cycle(self, ticker):
+        try:
+            current_price = get_current_price(ticker)
+            if ticker in self.buy_tickers:
+                if self._is_sell(current_price, ticker):
+                    crypto = get_balance(self.upbit, ticker.split("-")[1])
+                    result = self.upbit.sell_market_order(ticker, crypto)
+                    if result is not None:
+                        self.buy_tickers.pop(ticker)
+                        self.except_tickers += [ticker]
+                        self.slackbot.post_message(f"sell(d): {ticker} -> {crypto} won")
             else:
-                return 0
-    return 0
-
-
-def get_current_price(ticker):
-    return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-
-
-def func_version1(EXCEPT_COINS, slackbot, path="keys.json"):
-
-    except_coins = []
-    except_coins += EXCEPT_COINS
-    buy_prices = {}
-    markets = pyupbit.get_tickers(fiat="KRW")
-    markets = get_high_volume_tickers(markets, count=5)
-    access = read_key(path)
-    secret = read_key(path, key="SECRET_KEY")
-    upbit = pyupbit.Upbit(access, secret)
-    for market, _ in markets:
-        if market in except_coins:
-            continue
-        balance = get_balance(upbit, market.split("-")[1])
-        if balance != 0:
-            avg_buy_price = upbit.get_avg_buy_price(market.split("-")[1])
-            buy_prices[market] = avg_buy_price
-    start_time = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
-
-    while True:
-        for market, _ in markets:
-            if market in except_coins:
-                continue
+                k = get_kvalue(ticker)
+                target_price = get_target_price(ticker, k)
+                ma15 = get_ma15(ticker)
+                if self._is_buy(current_price, target_price, ma15):
+                    krw = min(self.max_budget, current_price)
+                    if krw > 5000:
+                        result = self.upbit.buy_market_order(ticker, krw * 0.9995)
+                        if result is not None:
+                            self.buy_tickers[ticker] = current_price
+                            self.bot.post_message(f"buy: {ticker} -> {krw * 0.9995} won")
             time.sleep(1)
-            try:
-                now = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
-                if now < start_time + datetime.timedelta(seconds=60 * 60):
-                    current_price = get_current_price(market)
-                    if market in buy_prices:
-                        if current_price < (buy_prices[market] * 0.95) or current_price > (buy_prices[market] * 1.05):
-                            crypto = get_balance(upbit, market.split("-")[1])
-                            result = upbit.sell_market_order(market, crypto)
-                            if result is not None:
-                                buy_prices.pop(market)
-                                except_coins += [market]
-                                slackbot.post_message(f"sell(d): {market} -> {crypto} won")
-                        continue
-                    k = get_kvalue(market)
-                    target_price = get_target_price(market, k)
-                    ma15 = get_ma15(market)
-                    if target_price < current_price and ma15 < current_price:
-                        krw = min(10000, get_balance(upbit, "KRW"))
-                        if krw > 5000:
-                            result = upbit.buy_market_order(market, krw * 0.9995)
-                            if result is not None:
-                                buy_prices[market] = current_price
-                                slackbot.post_message(f"buy: {market} -> {krw * 0.9995} won")
+        except Exception as e:
+            self.slackbot.post_message(e)
+            time.sleep(1)
 
-                else:
-                    buy_markets = list(buy_prices.keys())
-                    for market in buy_markets:
-                        crypto = get_balance(upbit, market.split("-")[1])
-                        if (crypto * get_current_price(market)) > 5000:
-                            result = upbit.sell_market_order(market, crypto)
-                            if result is not None:
-                                buy_prices.pop(market)
-                                slackbot.post_message(f"sell: {market} -> {crypto} won")
-                    markets = pyupbit.get_tickers(fiat="KRW")
-                    markets = get_high_volume_tickers(markets, count=5)
-                    start_time = now
-                    except_coins = EXCEPT_COINS
-            except Exception as e:
-                slackbot.post_message(e)
-                time.sleep(1)
+    def _process_out_cycle(self, ticker):
+        crypto = get_balance(self.upbit, ticker.split("-")[1])
+        current_price = get_current_price(ticker)
+        if (crypto * current_price) > 5000:
+            result = self.upbit.sell_market_order(ticker, crypto)
+            if result is not None:
+                self.slackbot.post_message(f"sell: {ticker} -> {crypto * current_price} won")
+        time.sleep(1)
+
+    def run(self):
+        tickers = self.select_tickers()
+        self.init_buy_tickers(tickers)
+        start_time = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
+        while True:
+            now = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
+            if now < start_time + datetime.timedelta(seconds=self.cycle_time):
+                for ticker in tickers:
+                    self._process_in_cycle(ticker)
+
+            else:
+                for ticker in tickers:
+                    self._process_out_cycle(ticker)
+                tickers = self.select_tickers()
+                self.init_buy_tickers(tickers)
