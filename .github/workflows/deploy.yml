@@ -17,3 +17,14 @@ jobs:
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
+
+      - name: Checkout
+          uses: actions/checkout@v2
+            - name: Install SSH key
+              uses: shimataro/ssh-key-action@v2
+              with:
+                key: ${{ secrets.KEY }}
+                name: id_rsa
+                known_hosts: ${{ secrets.USERNAME }}@${{ secrets.HOST }}
+            - name: rsync over ssh
+              run: ./deploy_to_aws.sh
