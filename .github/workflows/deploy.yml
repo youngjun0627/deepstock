@@ -9,15 +9,6 @@ jobs:
   SSH:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: executing remote ssh commands using ssh key
-        uses: fifsky/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          user: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-
       - name: Checkout
           uses: actions/checkout@v2
             - name: Install SSH key
