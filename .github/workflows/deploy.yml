@@ -22,8 +22,10 @@ jobs:
           debug: true
           script: | 
             cd deepstock
+            ls -a
             git pull
             sh kill.sh
-            nohup python3 run.py &
+            pipenv shell
+            nohup python3 run.py < /dev/null & 
             echo "start"
             echo -ne '\n'
