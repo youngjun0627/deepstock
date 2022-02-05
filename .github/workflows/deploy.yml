@@ -20,6 +20,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           debug: true
+          timeout: 30s
           script: | 
             cd deepstock
             ls -a
