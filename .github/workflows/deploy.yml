@@ -27,6 +27,7 @@ jobs:
             ls -a
             git pull
             sh kill.sh
-            { nohup pipenv run python3 run.py 2> /dev/null & }
+            pipenv run python3 run.py &
+            disown -h
             echo "start"
             exit
