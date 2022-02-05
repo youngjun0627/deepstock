@@ -24,6 +24,6 @@ jobs:
             cd deepstock
             git pull
             sh kill.sh
-            pipenv shell
+            python3 -m pipenv shell
             python3 --version
             nohup python3 run.py &
