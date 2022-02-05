@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@master
+
       - name: executing remote ssh commands using key
         uses: appleboy/ssh-action@master
         with:
@@ -18,5 +19,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
+          debug: true
           script: | 
             ls -a
