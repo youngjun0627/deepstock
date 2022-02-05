@@ -21,10 +21,9 @@ jobs:
           port: ${{ secrets.PORT }}
           debug: true
           script: | 
-            ls -a
             cd deepstock
             git pull
             sh kill.sh
             pipenv shell
-            python --version
-            nohup python run.py &
+            python3 --version
+            nohup python3 run.py &
