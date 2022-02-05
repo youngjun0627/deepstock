@@ -6,12 +6,31 @@ on:
       - main
 
 jobs:
-  SSH:
+  build:
+    runs-on: ubuntu-latest
     steps:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Install SSH key
-          uses: shimataro/ssh-key-action@v2
-          with:
-            key: ${{ secrets.SSH_KEY }}
-            known_hosts: ${{ secrets.KNOWN_HOST }}
+      - name: Checkout Branch
+        uses: actions/checkout@master
+
+      - name: Install SSH Key to server
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          name: id_rsa
+          known_hosts: 'replaced-by-keyscan-below'
+          config: |
+            host ${{ secrets.SSH_HOST }}
+              IdentityFile ~/.ssh/id_rsa
+              IdentitiesOnly yes
+              ForwardAgent yes
+      - name: Add Known Hosts
+        run: ssh-keyscan -t rsa ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Add SSH Key
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+
+      - name: Run
+        run: |
+          ls
