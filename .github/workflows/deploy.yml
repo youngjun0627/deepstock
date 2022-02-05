@@ -11,11 +11,12 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@master
-
-      - name: Run SSH command
-        uses: garygrossgarten/github-action-ssh@v0.5.0
+      - name: executing remote ssh commands using key
+        uses: appleboy/ssh-action@master
         with:
-          command: ls
           host: ${{ secrets.IP }}
           username: ${{ secrets.USERNAME }}
-          privateKey: ${{ secrets.KEY}}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: | 
+            ls -a
