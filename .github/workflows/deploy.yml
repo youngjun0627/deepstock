@@ -26,3 +26,4 @@ jobs:
             sh kill.sh
             nohup python3 run.py &
             echo "start"
+            echo -ne '\n'
