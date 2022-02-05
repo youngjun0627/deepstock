@@ -58,7 +58,7 @@ def get_current_price(ticker):
 
 def get_having_tickers(upbit, tickers, except_tickers):
     ticker_price_dict = {}
-    for ticker, _ in tickers:
+    for ticker in tickers:
         if ticker in except_tickers:
             continue
         ticker_name = ticker.split("-")[1]

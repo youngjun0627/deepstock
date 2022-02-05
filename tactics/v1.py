@@ -15,7 +15,9 @@ from .helpers import get_target_price
 
 class Executor:
     def __init__(self, upbit, slackbot, except_tickers):
-        self.except_tickers = except_tickers
+        self.INIT_EXCEPT_TICKERS = except_tickers
+        self.except_tickers = []
+        self.except_tickers += self.INIT_EXCEPT_TICKERS
         self.slackbot = slackbot
         self.upbit = upbit
         self.start_time = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
@@ -23,12 +25,13 @@ class Executor:
         self.buy_tickers = {}
         self.under_percent = 0.05
         self.over_percent = 0.05
-        self.max_budget = 7000
+        self.max_budget = 5500
         self.count_tickers = 3
 
     def select_tickers(self):
         tickers = pyupbit.get_tickers(fiat="KRW")
         tickers = get_high_volume_tickers(tickers, count=self.count_tickers)
+        tickers = [ticker for ticker, _ in tickers]
         return tickers
 
     def init_buy_tickers(self, tickers):
@@ -57,7 +60,7 @@ class Executor:
                     if result is not None:
                         self.buy_tickers.pop(ticker)
                         self.except_tickers += [ticker]
-                        self.slackbot.post_message(f"sell(d): {ticker} -> {crypto} won")
+                        self.slackbot.post_message(f"sell(d): {ticker} -> {crypto * current_price} won")
             else:
                 k = get_kvalue(ticker)
                 target_price = get_target_price(ticker, k)
@@ -68,7 +71,7 @@ class Executor:
                         result = self.upbit.buy_market_order(ticker, krw * 0.9995)
                         if result is not None:
                             self.buy_tickers[ticker] = current_price
-                            self.bot.post_message(f"buy: {ticker} -> {krw * 0.9995} won")
+                            self.slackbot.post_message(f"buy: {ticker} -> {krw * 0.9995} won")
             time.sleep(1)
         except Exception as e:
             self.slackbot.post_message(e)
@@ -91,10 +94,13 @@ class Executor:
             now = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
             if now < start_time + datetime.timedelta(seconds=self.cycle_time):
                 for ticker in tickers:
-                    self._process_in_cycle(ticker)
+                    if ticker not in self.except_tickers:
+                        self._process_in_cycle(ticker)
 
             else:
                 for ticker in tickers:
                     self._process_out_cycle(ticker)
                 tickers = self.select_tickers()
                 self.init_buy_tickers(tickers)
+                self.except_tickers = self.INIT_EXCEPT_TICKERS
+                start_time = now
