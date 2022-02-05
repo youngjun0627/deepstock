@@ -15,7 +15,7 @@ jobs:
       - name: Install SSH Key to server
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ secrets.KEY }}
           name: id_rsa
           known_hosts: 'replaced-by-keyscan-below'
           config: |
