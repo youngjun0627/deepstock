@@ -25,4 +25,5 @@ jobs:
             cd deepstock
             git pull
             sh kill.sh
+            pipenv shell
             nohup python run.py &
