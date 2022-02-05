@@ -25,7 +25,7 @@ class Executor:
         self.buy_tickers = {}
         self.under_percent = 0.05
         self.over_percent = 0.05
-        self.max_budget = 5500
+        self.max_budget = 10000
         self.count_tickers = 3
 
     def select_tickers(self):

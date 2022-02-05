@@ -7,7 +7,7 @@ devuchan.pem
 keys.json
 enter.sh
 nohup.out
-
+nohup.err
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
