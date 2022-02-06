@@ -25,7 +25,7 @@ class Executor:
         self.buy_tickers = {}
         self.under_percent = 0.05
         self.over_percent = 0.05
-        self.max_budget = 50000
+        self.max_budget = 20000
         self.count_tickers = 3
 
     def select_tickers(self):
@@ -66,7 +66,7 @@ class Executor:
                 target_price = get_target_price(ticker, k)
                 ma15 = get_ma15(ticker)
                 if self._is_buy(current_price, target_price, ma15):
-                    krw = min(self.max_budget, current_price)
+                    krw = self.max_budget  # min(self.max_budget, current_price)
                     if krw > 5000:
                         result = self.upbit.buy_market_order(ticker, krw * 0.9995)
                         if result is not None:
