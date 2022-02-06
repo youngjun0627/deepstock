@@ -82,13 +82,17 @@ class Executor:
             time.sleep(1)
 
     def _process_out_cycle(self, ticker):
-        crypto = get_balance(self.upbit, ticker.split("-")[1])
-        current_price = get_current_price(ticker)
-        if (crypto * current_price) > 5000:
-            result = self.upbit.sell_market_order(ticker, crypto)
-            if result is not None:
-                self.slackbot.post_message(f"sell: {ticker} -> {crypto * current_price} won")
-        time.sleep(1)
+        try:
+            crypto = get_balance(self.upbit, ticker.split("-")[1])
+            current_price = get_current_price(ticker)
+            if (crypto * current_price) > 5000:
+                result = self.upbit.sell_market_order(ticker, crypto)
+                if result is not None:
+                    self.slackbot.post_message(f"sell: {ticker} -> {crypto * current_price} won")
+            time.sleep(1)
+        except Exception as e:
+            self.slackbot.post_message(e)
+            time.sleep(1)
 
     def run(self):
         tickers = self.select_tickers()
