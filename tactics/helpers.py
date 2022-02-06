@@ -61,6 +61,7 @@ def get_having_tickers(upbit, tickers, except_tickers):
     for ticker in tickers:
         if ticker in except_tickers:
             continue
+        print(ticker)
         ticker_name = ticker.split("-")[1]
         balance = get_balance(upbit, ticker_name)
         if balance != 0:
