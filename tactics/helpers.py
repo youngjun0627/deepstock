@@ -66,4 +66,5 @@ def get_having_tickers(upbit, tickers, except_tickers):
         if balance != 0:
             avg_buy_price = upbit.get_avg_buy_price(ticker_name)
             ticker_price_dict[ticker] = avg_buy_price
+        time.sleep(1)
     return ticker_price_dict
