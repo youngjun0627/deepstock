@@ -59,13 +59,12 @@ def get_current_price(ticker):
 def get_having_tickers(upbit, tickers, except_tickers):
     ticker_price_dict = {}
     for ticker in tickers:
+        time.sleep(1)
         if ticker in except_tickers:
             continue
-        print(ticker)
         ticker_name = ticker.split("-")[1]
         balance = get_balance(upbit, ticker_name)
         if balance != 0:
             avg_buy_price = upbit.get_avg_buy_price(ticker_name)
             ticker_price_dict[ticker] = avg_buy_price
-        time.sleep(1)
     return ticker_price_dict
