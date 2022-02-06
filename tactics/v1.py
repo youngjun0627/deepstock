@@ -21,7 +21,7 @@ class Executor:
         self.slackbot = slackbot
         self.upbit = upbit
         self.start_time = datetime.datetime.now().astimezone(timezone("Asia/Seoul")).replace(tzinfo=None)
-        self.cycle_time = 20  # 60 * 60
+        self.cycle_time = 60 * 60
         self.buy_tickers = {}
         self.under_percent = 0.05
         self.over_percent = 0.05
