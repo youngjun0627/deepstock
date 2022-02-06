@@ -4,6 +4,8 @@ import time
 import pyupbit
 from pytz import timezone
 
+from deep.model import predict_price_using_lgbm
+
 from .helpers import get_balance
 from .helpers import get_current_price
 from .helpers import get_having_tickers
@@ -45,8 +47,8 @@ class Executor:
             return True
         return False
 
-    def _is_buy(self, current_price, target_price, ma15):
-        if target_price < current_price and ma15 < current_price:
+    def _is_buy(self, current_price, target_price, ma15, AI_predict):
+        if target_price < current_price and ma15 < current_price and AI_predict > 0.05:
             return True
         return False
 
@@ -65,7 +67,9 @@ class Executor:
                 k = get_kvalue(ticker)
                 target_price = get_target_price(ticker, k)
                 ma15 = get_ma15(ticker)
-                if self._is_buy(current_price, target_price, ma15):
+                predict_prob = predict_price_using_lgbm(ticker)
+                AI_predict = predict_price_using_lgbm(ticker)
+                if self._is_buy(current_price, target_price, ma15, predict_prob, AI_predict):
                     krw = self.max_budget  # min(self.max_budget, current_price)
                     if krw > 5000:
                         result = self.upbit.buy_market_order(ticker, krw * 0.9995)

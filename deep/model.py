@@ -1,6 +1,8 @@
 import lightgbm as lgb
 import numpy as np
 import pyupbit
+
+'''
 from fbprophet import Prophet
 
 
@@ -23,10 +25,11 @@ def predict_price_using_prophet(ticker):
     closeValue = closeDf["yhat"].values[0]
     predicted_close_price = closeValue
     return predicted_close_price
+'''
 
 
 def predict_price_using_lgbm(ticker):
-    df = pyupbit.get_ohlcv(ticker, interval="minute60")
+    df = pyupbit.get_ohlcv(ticker, interval="day")
     df["VWAP"] = df["value"] / df["volume"]
 
     """
@@ -40,11 +43,10 @@ def predict_price_using_lgbm(ticker):
     train_y = np.log(train_x[1:].reset_index()["close"] / train_x[:-1].reset_index()["close"])
     train_x = train_x[1:]
 
-    train_x, test_x = train_x[:-2], train_x[-2:]
-    train_y, test_y = train_y[:-2], train_y[-2:]
+    train_x, test_x = train_x[:-1], train_x[-1:]
+    train_y, test_y = train_y[:-1], train_y[-1:]
     model = get_model(train_x, train_y)
-
-    print(model.predict(test_x), test_y)
+    return model.predict(test_x)[0]
 
 
 def refeature(df):
@@ -68,3 +70,8 @@ def get_model(x, y):
     model.fit(x, y)
 
     return model
+
+
+if __name__ == "__main__":
+
+    print(predict_price_using_lgbm("KRW-KAVA"))

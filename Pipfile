@@ -7,6 +7,10 @@ name = "pypi"
 pyjwt = "*"
 requests = "*"
 pyupbit = "*"
+cmake = "*"
+numpy = "*"
+scikit-learn = "*"
+lightgbm = "*"
 
 [dev-packages]
 black = "*"
