@@ -12,6 +12,9 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@master
 
+      - name: zip distributions
+          run: zip -r deepstock.zip .
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -21,3 +24,10 @@ jobs:
 
       - name: Upload to S3
         run: aws s3 cp --region ap-northeast-2 main.py s3://uchanbucket
+
+      - name: deploy with AWS codeDeploy
+          run: aws deploy create-deployment
+            --application-name deep-stock-deploy
+            --deployment-config-name CodeDeployDefault.OneAtATime
+            --deployment-group-name GROUP
+            --s3-location bucket=uchanbucket,bundleType=zip,key=public/deepstock.zip
