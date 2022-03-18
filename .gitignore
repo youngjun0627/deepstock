@@ -4,6 +4,7 @@
 __pycache__
 .idea/
 devuchan.pem
+awskeys.json
 keys.json
 enter.sh
 nohup.out

@@ -12,22 +12,12 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@master
 
-      - name: executing remote ssh commands using key
-        uses: appleboy/ssh-action@master
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          port: ${{ secrets.PORT }}
-          debug: true
-          timeout: 30s
-          command_timeout: 30s
-          script: | 
-            cd deepstock
-            ls -a
-            git pull
-            sh stop_process.sh
-            nohup pipenv run python3 main.py > nohup.out 2> nohup.err < /dev/null &
-            
-            echo "start"
-            exit
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip
