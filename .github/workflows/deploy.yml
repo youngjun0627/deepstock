@@ -23,7 +23,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Upload to S3
-        run: aws s3 cp --region ap-northeast-2 main.py s3://uchanbucket
+        run: aws s3 cp --region ap-northeast-2 deepstock.zip s3://uchanbucket
 
       - name: deploy with AWS codeDeploy
         run: aws deploy create-deployment
