@@ -30,4 +30,4 @@ jobs:
           --application-name deep-stock-deploy
           --deployment-config-name CodeDeployDefault.OneAtATime
           --deployment-group-name GROUP
-          --s3-location bucket=uchanbucket,bundleType=zip,key=public/deepstock.zip
+          --s3-location bucket=uchanbucket,bundleType=zip,key=deepstock.zip
