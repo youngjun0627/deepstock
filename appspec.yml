@@ -13,6 +13,6 @@ permissions:
 
 hooks:
   AfterInstall:
-    - location: scripts/after-deploy.sh
+    - location: /home/ubuntu/deepstock/scripts/after-deploy.sh
       timeout: 30
       runas: ubuntu
