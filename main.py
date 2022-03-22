@@ -6,6 +6,7 @@ from utils import read_key
 
 
 def main():
+    print("running")
     EXCEPT_TICKERS = ["KRW-AXS", "KRW-SAND"]
     slackbot = SlackBot()
     path = "keys.json"
