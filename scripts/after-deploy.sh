@@ -20,4 +20,5 @@ ls
 
 cd /home/ubuntu/deepstock
 
-piprun main.py
+pip install --upgrade pip && pip install pipenv
+pipenv run main.py
