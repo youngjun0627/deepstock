@@ -6,7 +6,7 @@ files:
     overwrite: yes
 
 permissions:
-  - object: /home/ubuntu
+  - object: /home/ubuntu/deepstock
     mode: 755
     pattern: '**'
     owner: ubuntu
@@ -14,5 +14,5 @@ permissions:
 
 hooks:
   AfterInstall:
-    - location: deepstock/scripts/after-deploy.sh
+    - location: scripts/after-deploy.sh
       timeout: 180

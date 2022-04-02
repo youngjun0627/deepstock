@@ -12,6 +12,9 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@master
 
+      - name: zip distributions
+        run: zip -r deepstock.zip .
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -20,7 +23,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Upload to S3
-        run: aws s3 cp --region ap-northeast-2 . s3://uchanbucket
+        run: aws s3 cp --region ap-northeast-2 deepstock.zip s3://uchanbucket
 
       - name: deploy with AWS codeDeploy
         run: aws deploy create-deployment
