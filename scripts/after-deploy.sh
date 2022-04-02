@@ -16,6 +16,6 @@ else
         echo running process not found.
 fi
 
-cd deepstock
+ls
 
 python3 main.py
