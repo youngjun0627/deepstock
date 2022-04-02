@@ -10,3 +10,8 @@ permissions:
     pattern: '**'
     owner: ubuntu
     group: ubuntu
+
+hooks:
+  AfterInstall:
+    - location: /home/ubuntu/deepstock/scripts/after_deploy.sh
+      timeout: 180
