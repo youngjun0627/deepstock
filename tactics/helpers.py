@@ -3,10 +3,10 @@ import time
 import pyupbit
 
 
-def get_high_volume_tickers(coins, count=10, interval="minute60"):
+def get_high_volume_tickers(markets, count=10, interval="minute60"):
     result = []
-    for coin in coins:
-        volumes = (coin, pyupbit.get_ohlcv(ticker=coin, count=1, interval=interval)["value"].values[0])
+    for market in markets:
+        volumes = (market, pyupbit.get_ohlcv(ticker=market, count=1, interval=interval)["value"].values[0])
         result.append(volumes)
         time.sleep(0.1)
     result.sort(key=lambda x: x[1])
@@ -23,8 +23,8 @@ def get_kvalue(market):
         return None
 
 
-def get_target_price(ticker, k):
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
+def get_target_price(market, k):
+    df = pyupbit.get_ohlcv(market, interval="day", count=2)
     target_price = df.iloc[0]["close"] + (df.iloc[0]["high"] - df.iloc[0]["low"]) * k
     return target_price
 

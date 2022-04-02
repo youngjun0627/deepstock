@@ -3,7 +3,7 @@
 *.pt
 __pycache__
 .idea/
-devuchan.pem
+deepstock.pem
 awskeys.json
 keys.json
 enter.sh
