@@ -18,4 +18,4 @@ fi
 
 ls
 
-python3 main.py
+python3 /home/ubuntu/deepstock/main.py
