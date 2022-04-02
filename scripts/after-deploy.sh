@@ -18,4 +18,6 @@ fi
 
 ls
 
-python3 /home/ubuntu/deepstock/main.py
+cd /home/ubuntu/deepstock
+
+piprun main.py
