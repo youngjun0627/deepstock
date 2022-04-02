@@ -12,8 +12,6 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@master
 
-      - name: zip distributions
-        run: zip -r deepstock.zip .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
