@@ -13,5 +13,5 @@ permissions:
 
 hooks:
   AfterInstall:
-    - location: /home/ubuntu/deepstock/scripts/after_deploy.sh
+    - location: deepstock/scripts/after-deploy.sh
       timeout: 180
